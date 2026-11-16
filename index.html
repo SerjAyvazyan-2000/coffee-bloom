@@ -57,12 +57,19 @@ img{display:block;max-width:100%}
 .menu-open .burger span:nth-child(2){top:19px;transform:rotate(-45deg)}
 
 /* ---------- Scroll story ---------- */
-.story{position:relative;height:520vh}
-.story__sticky{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden}
+.story{position:relative}
+.story__sticky{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;margin-bottom:-100vh;margin-bottom:-100svh;z-index:0}
 #frames{position:absolute;inset:0;width:100%;height:100%;display:block}
 .story__veil{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(236,226,211,.92) 0%,rgba(236,226,211,.55) 30%,rgba(236,226,211,0) 52%)}
-.stage{position:absolute;left:clamp(20px,6vw,96px);top:50%;width:min(520px,44vw);transform:translateY(-50%);opacity:0;will-change:opacity,transform;pointer-events:none}
-.stage.active{pointer-events:auto}
+.story__panels{position:relative;z-index:2}
+.panel{display:flex;align-items:center;padding:0 clamp(20px,6vw,96px)}
+.panel--first,.panel--last{height:100vh;height:100svh}
+.panel--mid{height:170vh}
+.panel--gap{height:60vh}
+.stage{width:min(520px,44vw)}
+.stage > *{opacity:0;transform:translateY(40px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}
+.stage.in > *{opacity:1;transform:none}
+.stage.in > :nth-child(2){transition-delay:.08s}.stage.in > :nth-child(3){transition-delay:.16s}.stage.in > :nth-child(4){transition-delay:.24s}.stage.in > :nth-child(5){transition-delay:.32s}
 .eyebrow{display:inline-flex;align-items:center;gap:12px;font-size:11px;font-weight:600;letter-spacing:.26em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:22px}
 .eyebrow::before{content:"";width:28px;height:1px;background:currentColor}
 .stage h1,.stage h2{font-family:var(--serif);font-weight:400;font-size:clamp(52px,7.4vw,118px);line-height:.92;letter-spacing:-.01em;text-transform:uppercase}
@@ -71,7 +78,7 @@ img{display:block;max-width:100%}
 .stage p{margin-top:24px;max-width:380px;color:var(--ink-soft);font-size:16px}
 .stage .actions{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap}
 
-.progress{position:absolute;right:clamp(16px,3vw,44px);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:18px;font-size:11px;letter-spacing:.2em}
+.progress{position:fixed;z-index:3;transition:opacity .4s;right:clamp(16px,3vw,44px);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:18px;font-size:11px;letter-spacing:.2em}
 .progress div{display:flex;align-items:center;gap:10px;color:rgba(43,30,21,.35);transition:color .4s}
 .progress div::after{content:"";width:18px;height:1px;background:currentColor;transition:width .4s}
 .progress div.on{color:var(--ink)}
@@ -140,7 +147,9 @@ footer .big{font-family:var(--serif);font-size:clamp(70px,16vw,240px);line-heigh
   .burger{display:block}
   .menu-open .nav{display:flex;position:fixed;inset:0;z-index:-1;background:var(--cream);flex-direction:column;align-items:center;justify-content:center;gap:28px;font-size:22px}
   .story__veil{background:linear-gradient(0deg,rgba(236,226,211,.97) 0%,rgba(236,226,211,.85) 30%,rgba(236,226,211,0) 52%)}
-  .stage{top:auto;bottom:calc(36px + env(safe-area-inset-bottom));transform:none;width:auto;right:20px}
+  .panel{align-items:flex-end;padding:0 16px calc(28px + env(safe-area-inset-bottom))}
+  .panel--mid{align-items:center}
+  .stage{width:100%;padding:24px 22px;border-radius:22px;background:rgba(245,239,230,.78);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
   .stage h1,.stage h2{font-size:clamp(44px,13vw,64px)}
   .stage p{margin-top:14px;font-size:15px}
   .stage .actions{margin-top:20px}
@@ -184,37 +193,44 @@ footer .big{font-family:var(--serif);font-size:clamp(70px,16vw,240px);line-heigh
     <div class="story__sticky">
       <canvas id="frames" aria-hidden="true"></canvas>
       <div class="story__veil"></div>
-
-      <div class="stage" data-in="0" data-out="0.27">
-        <span class="eyebrow">Specialty coffee</span>
-        <h1>Wake<br>the <em>beans</em></h1>
-        <p>Small-batch roasting, every single week. From a crack of the bean to the very last sip.</p>
-        <div class="actions"><a href="#menu" class="btn">Find your cup
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a></div>
-      </div>
-
-      <div class="stage" data-in="0.34" data-out="0.6">
-        <span class="num">02.</span>
-        <span class="eyebrow">Let it bloom</span>
-        <h2>Let it<br><em>bloom</em></h2>
-        <p>Hand-poured, slow and patient. Thirty seconds of bloom unlock the sweetness hidden in every origin.</p>
-      </div>
-
-      <div class="stage" data-in="0.7" data-out="1.01">
-        <span class="eyebrow">Sip the unexpected</span>
-        <h2>Make time<br>taste <em>better</em></h2>
-        <p>Silky milk, bright espresso, and a little art on top. Stay a while.</p>
-        <div class="actions">
-          <a href="#menu" class="btn">See the menu</a>
-          <a href="#visit" class="btn btn--ghost">Visit us</a>
-        </div>
-      </div>
-
-      <div class="progress" id="progress">
-        <div>01</div><div>02</div><div>03</div>
-      </div>
       <div class="hint" id="hint">Scroll<i></i></div>
     </div>
+
+    <!-- text panels scroll normally over the pinned video -->
+    <div class="story__panels">
+      <div class="panel panel--first">
+        <div class="stage">
+          <span class="eyebrow">Specialty coffee</span>
+          <h1>Wake<br>the <em>beans</em></h1>
+          <p>Small-batch roasting, every single week. From a crack of the bean to the very last sip.</p>
+          <div class="actions"><a href="#menu" class="btn">Find your cup
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a></div>
+        </div>
+      </div>
+      <div class="panel panel--mid">
+        <div class="stage">
+          <span class="num">02.</span>
+          <span class="eyebrow">Let it bloom</span>
+          <h2>Let it<br><em>bloom</em></h2>
+          <p>Hand-poured, slow and patient. Thirty seconds of bloom unlock the sweetness hidden in every origin.</p>
+        </div>
+      </div>
+      <div class="panel--gap"></div>
+      <div class="panel panel--last">
+        <div class="stage">
+          <span class="eyebrow">Sip the unexpected</span>
+          <h2>Make time<br>taste <em>better</em></h2>
+          <p>Silky milk, bright espresso, and a little art on top. Stay a while.</p>
+          <div class="actions">
+            <a href="#menu" class="btn">See the menu</a>
+            <a href="#visit" class="btn btn--ghost">Visit us</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="progress" id="progress">
+    <div>01</div><div>02</div><div>03</div>
   </div>
 
   <!-- Menu -->
@@ -279,6 +295,7 @@ footer .big{font-family:var(--serif);font-size:clamp(70px,16vw,240px);line-heigh
   const ctx = canvas.getContext('2d');
   const track = document.getElementById('storyTrack');
   const stages = [...document.querySelectorAll('.stage')];
+  const progressEl = document.getElementById('progress');
   const dots = [...document.querySelectorAll('#progress div')];
   const hint = document.getElementById('hint');
   const header = document.getElementById('header');
@@ -338,29 +355,33 @@ footer .big{font-family:var(--serif);font-size:clamp(70px,16vw,240px);line-heigh
   }
 
   let lastDrawn = -1;
+  let pan = 0;
   function draw(index) {
-    if (index === lastDrawn) return;
+    const key = index + pan.toFixed(3);
+    if (key === lastDrawn) return;
     const img = nearestLoaded(index);
     if (!img) return;
-    lastDrawn = index;
+    lastDrawn = key;
     const iw = img.naturalWidth, ih = img.naturalHeight;
     const portrait = W / H < 1.05;
 
     if (!portrait) {
       // cover, keep the subject (right side) in view
-      const s = Math.max(W / iw, H / ih);
+      // slightly oversized so the "camera" can travel down as you scroll
+      const s = Math.max(W / iw, H / ih) * 1.16;
       const dw = iw * s, dh = ih * s;
       const fx = 0.62;                       // focal point (x) of the shot
       let x = W * 0.62 - dw * fx;
       x = Math.min(0, Math.max(W - dw, x));
-      ctx.drawImage(img, x, (H - dh) / 2, dw, dh);
+      const y = -(dh - H) * pan;             // 0 → top of the shot, 1 → bottom
+      ctx.drawImage(img, x, y, dw, dh);
     } else {
       // phones: show a wider part of the shot, blend top/bottom into the background
       const dh = H * 0.62, s = dh / ih, dw = iw * s;
       const fx = 0.7;
       let x = W / 2 - dw * fx;
       x = Math.min(0, Math.max(W - dw, x));
-      const y = H * 0.1;
+      const y = H * (0.16 - 0.1 * pan);
       pctx.drawImage(img, 0, 0, iw, ih, 0, 0, 1, 2);
       const [r1, g1, b1, , r2, g2, b2] = pctx.getImageData(0, 0, 1, 2).data;
       const top = `rgb(${r1},${g1},${b1})`, bot = `rgb(${r2},${g2},${b2})`;
@@ -386,43 +407,31 @@ footer .big{font-family:var(--serif);font-size:clamp(70px,16vw,240px);line-heigh
     const r = track.getBoundingClientRect();
     const total = track.offsetHeight - window.innerHeight;
     target = clamp(-r.top / total, 0, 1);
-    header.classList.toggle('scrolled', window.scrollY > window.innerHeight * 4.6);
+    header.classList.toggle('scrolled', r.bottom < window.innerHeight * 0.2);
+    progressEl.style.opacity = r.bottom > window.innerHeight * 0.6 ? 1 : 0;
   }
   window.addEventListener('scroll', readScroll, { passive: true });
   readScroll();
 
-  function stageAlpha(p, a, b) {
-    const fade = 0.07;
-    if (a <= 0 && p < b) return p > b - fade ? smooth((b - p) / fade) : 1;
-    if (p < a || p > b) return 0;
-    if (p < a + fade) return smooth((p - a) / fade);
-    if (p > b - fade && b <= 1) return smooth((b - p) / fade);
-    return 1;
-  }
-
   function tick() {
     current += (target - current) * 0.12;
     if (Math.abs(target - current) < 0.0001) current = target;
-
+    pan = current;
     draw(Math.round(current * (FRAME_COUNT - 1)));
 
-    let activeIdx = 0;
-    stages.forEach((el, i) => {
-      const a = parseFloat(el.dataset.in), b = parseFloat(el.dataset.out);
-      const o = stageAlpha(current, a, b);
-      const mobile = W < 760;
-      const shift = (1 - o) * 30;
-      el.style.opacity = o.toFixed(3);
-      el.style.transform = mobile ? `translateY(${shift}px)` : `translateY(calc(-50% + ${shift}px))`;
-      el.classList.toggle('active', o > 0.5);
-      if (current >= a - 0.04) activeIdx = i;
-    });
-    dots.forEach((d, i) => d.classList.toggle('on', i === activeIdx));
+    const idx = current < 0.27 ? 0 : current < 0.72 ? 1 : 2;
+    dots.forEach((d, i) => d.classList.toggle('on', i === idx));
     hint.style.opacity = current > 0.03 ? 0 : 1;
 
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
+
+  // ---- text panels: animate in/out as they pass ----
+  const so = new IntersectionObserver(entries => {
+    entries.forEach(e => e.target.classList.toggle('in', e.isIntersecting));
+  }, { threshold: 0.35 });
+  stages.forEach(el => so.observe(el));
 
   // ---- reveal on scroll ----
   const io = new IntersectionObserver(entries => {
