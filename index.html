@@ -7,7 +7,8 @@
 <meta name="description" content="Specialty coffee roasters. Freshly roasted beans, slow pour-over and latte made with care.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
 <style>
 :root{
   --cream:#ece2d3;
@@ -289,7 +290,9 @@ footer .big{font-family:var(--serif);font-size:clamp(70px,16vw,240px);line-heigh
 <script>
 (() => {
   const FRAME_COUNT = 227;
-  const src = i => `frames/f${String(i + 1).padStart(3, '0')}.webp`;
+  // phones get a lighter set of frames
+  const dir = window.innerWidth < 760 || (navigator.connection && navigator.connection.saveData) ? 'frames-sm' : 'frames';
+  const src = i => `${dir}/f${String(i + 1).padStart(3, '0')}.webp`;
 
   const canvas = document.getElementById('frames');
   const ctx = canvas.getContext('2d');
@@ -308,28 +311,46 @@ footer .big{font-family:var(--serif);font-size:clamp(70px,16vw,240px);line-heigh
   const pctx = probe.getContext('2d', { willReadFrequently: true });
 
   const images = new Array(FRAME_COUNT);
-  let loaded = 0, started = false;
+  let started = false;
 
-  function onLoad() {
-    loaded++;
-    const p = Math.round(loaded / FRAME_COUNT * 100);
-    fill.style.width = p + '%'; pct.textContent = p + '%';
-    if (loaded === 1) { resize(); }
-    if (!started && loaded >= FRAME_COUNT) start();
+  // Load order: first frame, then a coarse pass (every 16th, 8th, 4th...) so the
+  // whole animation is scrubbable almost immediately, then fill in the gaps.
+  const order = [0];
+  const seen = new Set(order);
+  [16, 8, 4, 2, 1].forEach(step => {
+    for (let i = 0; i < FRAME_COUNT; i += step) if (!seen.has(i)) { seen.add(i); order.push(i); }
+  });
+  if (!seen.has(FRAME_COUNT - 1)) order.push(FRAME_COUNT - 1);
+  const READY_AT = 1 + Math.ceil(FRAME_COUNT / 8);   // first frame + every 8th frame
+
+  let next = 0, done = 0, active = 0;
+  const PARALLEL = 6;
+  function pump() {
+    while (active < PARALLEL && next < order.length) {
+      const i = order[next++];
+      const img = new Image();
+      img.decoding = 'async';
+      active++;
+      img.onload = img.onerror = () => {
+        active--; done++;
+        if (i === 0) { resize(); }
+        const p = Math.min(100, Math.round(done / READY_AT * 100));
+        fill.style.width = p + '%'; pct.textContent = p + '%';
+        if (!started && done >= READY_AT) start();
+        lastDrawn = -1;
+        pump();
+      };
+      img.src = src(i);
+      images[i] = img;
+    }
   }
-  for (let i = 0; i < FRAME_COUNT; i++) {
-    const img = new Image();
-    img.decoding = 'async';
-    img.onload = onLoad;
-    img.onerror = onLoad;
-    img.src = src(i);
-    images[i] = img;
-  }
-  // safety: don't keep people waiting forever on a slow connection
-  setTimeout(() => { if (!started && loaded > 20) start(); }, 7000);
+  pump();
+  // never keep people waiting on a slow connection
+  setTimeout(() => { if (!started) start(); }, 2500);
 
   function start() {
     started = true;
+    window.__startedAt = performance.now();
     loader.classList.add('done');
     document.body.classList.remove('is-loading');
   }
