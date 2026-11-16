@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C&amp;B — Coffee &amp; Bloom</title>
+<meta name="description" content="Specialty coffee roasters. Freshly roasted beans, slow pour-over and latte made with care.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#ece2d3;
+  --paper:#f5efe6;
+  --ink:#2b1e15;
+  --ink-soft:#6b5747;
+  --caramel:#b0703a;
+  --terra:#b5644a;
+  --line:rgba(43,30,21,.14);
+  --serif:"Bodoni Moda", "Didot", "Times New Roman", serif;
+  --sans:"Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--cream);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body.is-loading{overflow:hidden}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+
+/* ---------- Preloader ---------- */
+.loader{position:fixed;inset:0;z-index:100;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;transition:opacity .8s ease,visibility .8s}
+.loader.done{opacity:0;visibility:hidden}
+.loader__logo{font-family:var(--serif);font-size:44px;letter-spacing:.04em}
+.loader__bar{width:180px;height:1px;background:var(--line);overflow:hidden}
+.loader__fill{height:100%;width:0;background:var(--ink);transition:width .2s linear}
+.loader__pct{font-size:12px;letter-spacing:.2em;color:var(--ink-soft)}
+
+/* ---------- Header ---------- */
+.header{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:22px clamp(20px,4vw,56px);transition:background .4s,padding .4s,box-shadow .4s}
+.header.scrolled{background:rgba(236,226,211,.86);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding-top:14px;padding-bottom:14px;box-shadow:0 1px 0 var(--line)}
+.logo{font-family:var(--serif);font-size:22px;letter-spacing:.02em;display:flex;align-items:baseline;gap:10px}
+.logo small{font-family:var(--sans);font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--ink-soft)}
+.nav{display:flex;gap:34px;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.nav a{position:relative;padding:4px 0}
+.nav a::after{content:"";position:absolute;left:0;bottom:0;width:100%;height:1px;background:currentColor;transform:scaleX(0);transform-origin:right;transition:transform .35s ease}
+.nav a:hover::after{transform:scaleX(1);transform-origin:left}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:13px 24px;border-radius:999px;background:var(--ink);color:var(--paper);font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;transition:transform .3s ease,background .3s;border:0;cursor:pointer;font-family:inherit}
+.btn:hover{transform:translateY(-2px);background:#43301f}
+.btn--ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.btn--ghost:hover{background:var(--ink);color:var(--paper)}
+.btn svg{width:14px;height:14px}
+.header .btn{padding:10px 20px}
+.burger{display:none;background:none;border:0;width:40px;height:40px;cursor:pointer;position:relative}
+.burger span{position:absolute;left:9px;right:9px;height:1.5px;background:var(--ink);transition:transform .3s,top .3s}
+.burger span:nth-child(1){top:15px}.burger span:nth-child(2){top:23px}
+.menu-open .burger span:nth-child(1){top:19px;transform:rotate(45deg)}
+.menu-open .burger span:nth-child(2){top:19px;transform:rotate(-45deg)}
+
+/* ---------- Scroll story ---------- */
+.story{position:relative;height:520vh}
+.story__sticky{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden}
+#frames{position:absolute;inset:0;width:100%;height:100%;display:block}
+.story__veil{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(236,226,211,.92) 0%,rgba(236,226,211,.55) 30%,rgba(236,226,211,0) 52%)}
+.stage{position:absolute;left:clamp(20px,6vw,96px);top:50%;width:min(520px,44vw);transform:translateY(-50%);opacity:0;will-change:opacity,transform;pointer-events:none}
+.stage.active{pointer-events:auto}
+.eyebrow{display:inline-flex;align-items:center;gap:12px;font-size:11px;font-weight:600;letter-spacing:.26em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:22px}
+.eyebrow::before{content:"";width:28px;height:1px;background:currentColor}
+.stage h1,.stage h2{font-family:var(--serif);font-weight:400;font-size:clamp(52px,7.4vw,118px);line-height:.92;letter-spacing:-.01em;text-transform:uppercase}
+.stage h2 em,.stage h1 em{font-style:italic;text-transform:none;color:var(--caramel)}
+.stage .num{font-family:var(--serif);font-size:clamp(28px,3vw,40px);display:block;margin-bottom:6px;color:var(--terra)}
+.stage p{margin-top:24px;max-width:380px;color:var(--ink-soft);font-size:16px}
+.stage .actions{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap}
+
+.progress{position:absolute;right:clamp(16px,3vw,44px);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:18px;font-size:11px;letter-spacing:.2em}
+.progress div{display:flex;align-items:center;gap:10px;color:rgba(43,30,21,.35);transition:color .4s}
+.progress div::after{content:"";width:18px;height:1px;background:currentColor;transition:width .4s}
+.progress div.on{color:var(--ink)}
+.progress div.on::after{width:36px}
+.hint{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:10px;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--ink-soft);transition:opacity .5s}
+.hint i{width:1px;height:42px;background:var(--line);position:relative;overflow:hidden}
+.hint i::after{content:"";position:absolute;left:0;top:-50%;width:100%;height:50%;background:var(--ink);animation:drip 1.8s ease-in-out infinite}
+@keyframes drip{to{top:100%}}
+
+/* ---------- Sections ---------- */
+section.block{padding:clamp(90px,12vw,160px) clamp(20px,6vw,96px);position:relative}
+.block--paper{background:var(--paper)}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:40px;margin-bottom:64px;flex-wrap:wrap}
+.head h2{font-family:var(--serif);font-weight:400;font-size:clamp(40px,5.4vw,80px);line-height:.98;text-transform:uppercase;max-width:720px}
+.head h2 em{font-style:italic;text-transform:none;color:var(--caramel)}
+.head p{max-width:360px;color:var(--ink-soft)}
+
+.menu-grid{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line)}
+.item{padding:36px 28px 40px 0;border-bottom:1px solid var(--line);position:relative}
+.item + .item{padding-left:28px;border-left:1px solid var(--line)}
+.item .idx{font-size:11px;letter-spacing:.2em;color:var(--ink-soft)}
+.item h3{font-family:var(--serif);font-weight:400;font-size:30px;margin:46px 0 10px;line-height:1.05}
+.item p{color:var(--ink-soft);font-size:14px;min-height:66px}
+.item .price{margin-top:26px;display:flex;justify-content:space-between;align-items:center;font-weight:600}
+.item .price span{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-soft);font-weight:500}
+.item::before{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:var(--ink);transform:scaleX(0);transform-origin:left;transition:transform .6s ease}
+.item:hover::before{transform:scaleX(1)}
+
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(24px,4vw,64px)}
+.step .n{font-family:var(--serif);font-size:88px;line-height:1;color:var(--terra);opacity:.9}
+.step h3{font-family:var(--serif);font-weight:400;font-size:28px;margin:18px 0 12px}
+.step p{color:var(--ink-soft);font-size:15px}
+.quote{margin-top:clamp(80px,10vw,140px);font-family:var(--serif);font-size:clamp(30px,3.8vw,56px);line-height:1.15;max-width:980px}
+.quote em{color:var(--caramel)}
+.quote small{display:block;margin-top:24px;font-family:var(--sans);font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-soft)}
+
+.visit{display:grid;grid-template-columns:1.2fr 1fr;gap:clamp(40px,6vw,100px);align-items:start}
+.visit h2{font-family:var(--serif);font-weight:400;font-size:clamp(48px,7vw,110px);line-height:.92;text-transform:uppercase}
+.visit h2 em{font-style:italic;text-transform:none;color:var(--caramel)}
+.info{display:grid;gap:30px;padding-top:10px}
+.info div{border-top:1px solid var(--line);padding-top:18px}
+.info span{display:block;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:8px}
+.info b{font-weight:500;font-size:19px}
+.form{display:flex;gap:10px;margin-top:8px}
+.form input{flex:1;min-width:0;padding:14px 20px;border-radius:999px;border:1px solid var(--line);background:transparent;font:inherit;color:var(--ink)}
+.form input:focus{outline:none;border-color:var(--ink)}
+.form-note{font-size:13px;color:var(--terra);margin-top:10px;min-height:20px}
+
+footer{padding:40px clamp(20px,6vw,96px);display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;font-size:13px;color:var(--ink-soft);border-top:1px solid var(--line)}
+footer .big{font-family:var(--serif);font-size:clamp(70px,16vw,240px);line-height:.8;color:var(--ink);width:100%;letter-spacing:-.02em;margin-bottom:30px}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(40px);transition:opacity 1s cubic-bezier(.2,.7,.2,1),transform 1s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+.reveal.d1{transition-delay:.1s}.reveal.d2{transition-delay:.2s}.reveal.d3{transition-delay:.3s}
+
+/* ---------- Responsive ---------- */
+@media (max-width:960px){
+  .menu-grid{grid-template-columns:repeat(2,1fr)}
+  .item:nth-child(3){padding-left:0;border-left:0}
+  .steps{grid-template-columns:1fr}
+  .visit{grid-template-columns:1fr}
+}
+@media (max-width:760px){
+  .nav,.header .btn{display:none}
+  .burger{display:block}
+  .menu-open .nav{display:flex;position:fixed;inset:0;z-index:-1;background:var(--cream);flex-direction:column;align-items:center;justify-content:center;gap:28px;font-size:22px}
+  .story__veil{background:linear-gradient(0deg,rgba(236,226,211,.97) 0%,rgba(236,226,211,.85) 30%,rgba(236,226,211,0) 52%)}
+  .stage{top:auto;bottom:calc(36px + env(safe-area-inset-bottom));transform:none;width:auto;right:20px}
+  .stage h1,.stage h2{font-size:clamp(44px,13vw,64px)}
+  .stage p{margin-top:14px;font-size:15px}
+  .stage .actions{margin-top:20px}
+  .progress{top:96px;transform:none;flex-direction:row;gap:12px}
+  .progress div::after{display:none}
+  .hint{display:none}
+  .menu-grid{grid-template-columns:1fr}
+  .item,.item + .item{padding:30px 0;border-left:0}
+  .item h3{margin-top:22px}
+  .item p{min-height:0}
+  .form{flex-direction:column}
+}
+@media (prefers-reduced-motion:reduce){
+  .reveal{opacity:1;transform:none;transition:none}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body class="is-loading">
+
+<div class="loader" id="loader">
+  <div class="loader__logo">C&amp;B</div>
+  <div class="loader__bar"><div class="loader__fill" id="loaderFill"></div></div>
+  <div class="loader__pct" id="loaderPct">0%</div>
+</div>
+
+<header class="header" id="header">
+  <a href="#top" class="logo">C&amp;B <small>Coffee &amp; Bloom</small></a>
+  <nav class="nav" id="nav">
+    <a href="#menu">Menu</a>
+    <a href="#story">Our story</a>
+    <a href="#visit">Visit</a>
+  </nav>
+  <a href="#visit" class="btn">Order now</a>
+  <button class="burger" id="burger" aria-label="Menu"><span></span><span></span></button>
+</header>
+
+<main id="top">
+  <!-- Scroll-driven video -->
+  <div class="story" id="storyTrack">
+    <div class="story__sticky">
+      <canvas id="frames" aria-hidden="true"></canvas>
+      <div class="story__veil"></div>
+
+      <div class="stage" data-in="0" data-out="0.27">
+        <span class="eyebrow">Specialty coffee</span>
+        <h1>Wake<br>the <em>beans</em></h1>
+        <p>Small-batch roasting, every single week. From a crack of the bean to the very last sip.</p>
+        <div class="actions"><a href="#menu" class="btn">Find your cup
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a></div>
+      </div>
+
+      <div class="stage" data-in="0.34" data-out="0.6">
+        <span class="num">02.</span>
+        <span class="eyebrow">Let it bloom</span>
+        <h2>Let it<br><em>bloom</em></h2>
+        <p>Hand-poured, slow and patient. Thirty seconds of bloom unlock the sweetness hidden in every origin.</p>
+      </div>
+
+      <div class="stage" data-in="0.7" data-out="1.01">
+        <span class="eyebrow">Sip the unexpected</span>
+        <h2>Make time<br>taste <em>better</em></h2>
+        <p>Silky milk, bright espresso, and a little art on top. Stay a while.</p>
+        <div class="actions">
+          <a href="#menu" class="btn">See the menu</a>
+          <a href="#visit" class="btn btn--ghost">Visit us</a>
+        </div>
+      </div>
+
+      <div class="progress" id="progress">
+        <div>01</div><div>02</div><div>03</div>
+      </div>
+      <div class="hint" id="hint">Scroll<i></i></div>
+    </div>
+  </div>
+
+  <!-- Menu -->
+  <section class="block block--paper" id="menu">
+    <div class="head">
+      <h2 class="reveal">Brewed <em>with</em><br>intention</h2>
+      <p class="reveal d1">A short menu, done properly. Seasonal beans from single farms, roasted in-house and brewed to order.</p>
+    </div>
+    <div class="menu-grid">
+      <article class="item reveal"><span class="idx">01 / ESPRESSO</span><h3>Espresso</h3><p>Dense, syrupy, with notes of dark chocolate and cherry.</p><div class="price"><span>Single · Double</span>$3.0</div></article>
+      <article class="item reveal d1"><span class="idx">02 / FILTER</span><h3>Pour-over</h3><p>Rotating single origin, brewed by hand in a ceramic dripper.</p><div class="price"><span>300 ml</span>$4.5</div></article>
+      <article class="item reveal d2"><span class="idx">03 / MILK</span><h3>Latte</h3><p>Velvety micro-foam over a double shot, finished with latte art.</p><div class="price"><span>250 · 350 ml</span>$4.0</div></article>
+      <article class="item reveal d3"><span class="idx">04 / COLD</span><h3>Cold brew</h3><p>Steeped for 18 hours. Smooth, low acidity, caramel finish.</p><div class="price"><span>400 ml</span>$4.5</div></article>
+    </div>
+  </section>
+
+  <!-- Story -->
+  <section class="block" id="story">
+    <div class="head">
+      <h2 class="reveal">From bean<br>to <em>cup</em></h2>
+      <p class="reveal d1">Three steps, no shortcuts. That's the whole secret behind a cup worth slowing down for.</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal"><div class="n">01</div><h3>Source</h3><p>We buy directly from small farms and pay above fair-trade prices for the best lots of the harvest.</p></div>
+      <div class="step reveal d1"><div class="n">02</div><h3>Roast</h3><p>Light-to-medium roasts in small batches, every week, so your coffee is never older than a fortnight.</p></div>
+      <div class="step reveal d2"><div class="n">03</div><h3>Brew</h3><p>Weighed, timed and tasted. Our baristas dial in each bean every morning before doors open.</p></div>
+    </div>
+    <p class="quote reveal">“Coffee is a pause you can <em>hold in your hands.</em>”<small>— The C&amp;B team</small></p>
+  </section>
+
+  <!-- Visit -->
+  <section class="block block--paper" id="visit">
+    <div class="visit">
+      <h2 class="reveal">Come by<br>for a <em>cup</em></h2>
+      <div class="info">
+        <div class="reveal"><span>Address</span><b>12 Bloom Street, City Centre</b></div>
+        <div class="reveal d1"><span>Hours</span><b>Mon–Fri 8:00–20:00 · Sat–Sun 9:00–21:00</b></div>
+        <div class="reveal d2"><span>Order ahead</span>
+          <form class="form" id="orderForm">
+            <input type="tel" placeholder="Your phone number" required>
+            <button class="btn" type="submit">Call me back</button>
+          </form>
+          <div class="form-note" id="formNote"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="big">C&amp;B</div>
+  <span>© 2026 Coffee &amp; Bloom</span>
+  <span>Instagram · Telegram</span>
+</footer>
+
+<script>
+(() => {
+  const FRAME_COUNT = 227;
+  const src = i => `frames/f${String(i + 1).padStart(3, '0')}.webp`;
+
+  const canvas = document.getElementById('frames');
+  const ctx = canvas.getContext('2d');
+  const track = document.getElementById('storyTrack');
+  const stages = [...document.querySelectorAll('.stage')];
+  const dots = [...document.querySelectorAll('#progress div')];
+  const hint = document.getElementById('hint');
+  const header = document.getElementById('header');
+  const loader = document.getElementById('loader');
+  const fill = document.getElementById('loaderFill');
+  const pct = document.getElementById('loaderPct');
+
+  // small helper canvas to sample edge colours (for portrait layout)
+  const probe = document.createElement('canvas'); probe.width = 1; probe.height = 2;
+  const pctx = probe.getContext('2d', { willReadFrequently: true });
+
+  const images = new Array(FRAME_COUNT);
+  let loaded = 0, started = false;
+
+  function onLoad() {
+    loaded++;
+    const p = Math.round(loaded / FRAME_COUNT * 100);
+    fill.style.width = p + '%'; pct.textContent = p + '%';
+    if (loaded === 1) { resize(); }
+    if (!started && loaded >= FRAME_COUNT) start();
+  }
+  for (let i = 0; i < FRAME_COUNT; i++) {
+    const img = new Image();
+    img.decoding = 'async';
+    img.onload = onLoad;
+    img.onerror = onLoad;
+    img.src = src(i);
+    images[i] = img;
+  }
+  // safety: don't keep people waiting forever on a slow connection
+  setTimeout(() => { if (!started && loaded > 20) start(); }, 7000);
+
+  function start() {
+    started = true;
+    loader.classList.add('done');
+    document.body.classList.remove('is-loading');
+  }
+
+  // ---- canvas sizing ----
+  let W = 0, H = 0, dpr = 1;
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = canvas.clientWidth; H = canvas.clientHeight;
+    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    lastDrawn = -1;
+  }
+  window.addEventListener('resize', resize);
+
+  function nearestLoaded(i) {
+    for (let d = 0; d < FRAME_COUNT; d++) {
+      const a = images[i - d], b = images[i + d];
+      if (a && a.complete && a.naturalWidth) return a;
+      if (b && b.complete && b.naturalWidth) return b;
+    }
+    return null;
+  }
+
+  let lastDrawn = -1;
+  function draw(index) {
+    if (index === lastDrawn) return;
+    const img = nearestLoaded(index);
+    if (!img) return;
+    lastDrawn = index;
+    const iw = img.naturalWidth, ih = img.naturalHeight;
+    const portrait = W / H < 1.05;
+
+    if (!portrait) {
+      // cover, keep the subject (right side) in view
+      const s = Math.max(W / iw, H / ih);
+      const dw = iw * s, dh = ih * s;
+      const fx = 0.62;                       // focal point (x) of the shot
+      let x = W * 0.62 - dw * fx;
+      x = Math.min(0, Math.max(W - dw, x));
+      ctx.drawImage(img, x, (H - dh) / 2, dw, dh);
+    } else {
+      // phones: show a wider part of the shot, blend top/bottom into the background
+      const dh = H * 0.62, s = dh / ih, dw = iw * s;
+      const fx = 0.7;
+      let x = W / 2 - dw * fx;
+      x = Math.min(0, Math.max(W - dw, x));
+      const y = H * 0.1;
+      pctx.drawImage(img, 0, 0, iw, ih, 0, 0, 1, 2);
+      const [r1, g1, b1, , r2, g2, b2] = pctx.getImageData(0, 0, 1, 2).data;
+      const top = `rgb(${r1},${g1},${b1})`, bot = `rgb(${r2},${g2},${b2})`;
+      ctx.fillStyle = top; ctx.fillRect(0, 0, W, y + dh / 2);
+      ctx.fillStyle = bot; ctx.fillRect(0, y + dh / 2, W, H);
+      ctx.drawImage(img, x, y, dw, dh);
+      const f = 60;
+      let g = ctx.createLinearGradient(0, y, 0, y + f);
+      g.addColorStop(0, top); g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g; ctx.fillRect(0, y - 1, W, f);
+      g = ctx.createLinearGradient(0, y + dh, 0, y + dh - f);
+      g.addColorStop(0, bot); g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g; ctx.fillRect(0, y + dh - f, W, f + 1);
+    }
+  }
+
+  // ---- scroll → progress (smoothed) ----
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const smooth = t => t * t * (3 - 2 * t);
+  let target = 0, current = 0;
+
+  function readScroll() {
+    const r = track.getBoundingClientRect();
+    const total = track.offsetHeight - window.innerHeight;
+    target = clamp(-r.top / total, 0, 1);
+    header.classList.toggle('scrolled', window.scrollY > window.innerHeight * 4.6);
+  }
+  window.addEventListener('scroll', readScroll, { passive: true });
+  readScroll();
+
+  function stageAlpha(p, a, b) {
+    const fade = 0.07;
+    if (a <= 0 && p < b) return p > b - fade ? smooth((b - p) / fade) : 1;
+    if (p < a || p > b) return 0;
+    if (p < a + fade) return smooth((p - a) / fade);
+    if (p > b - fade && b <= 1) return smooth((b - p) / fade);
+    return 1;
+  }
+
+  function tick() {
+    current += (target - current) * 0.12;
+    if (Math.abs(target - current) < 0.0001) current = target;
+
+    draw(Math.round(current * (FRAME_COUNT - 1)));
+
+    let activeIdx = 0;
+    stages.forEach((el, i) => {
+      const a = parseFloat(el.dataset.in), b = parseFloat(el.dataset.out);
+      const o = stageAlpha(current, a, b);
+      const mobile = W < 760;
+      const shift = (1 - o) * 30;
+      el.style.opacity = o.toFixed(3);
+      el.style.transform = mobile ? `translateY(${shift}px)` : `translateY(calc(-50% + ${shift}px))`;
+      el.classList.toggle('active', o > 0.5);
+      if (current >= a - 0.04) activeIdx = i;
+    });
+    dots.forEach((d, i) => d.classList.toggle('on', i === activeIdx));
+    hint.style.opacity = current > 0.03 ? 0 : 1;
+
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  // ---- reveal on scroll ----
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // ---- mobile menu ----
+  document.getElementById('burger').addEventListener('click', () => document.body.classList.toggle('menu-open'));
+  document.querySelectorAll('#nav a').forEach(a => a.addEventListener('click', () => document.body.classList.remove('menu-open')));
+
+  // ---- form (connect to Telegram / CRM later) ----
+  document.getElementById('orderForm').addEventListener('submit', e => {
+    e.preventDefault();
+    document.getElementById('formNote').textContent = 'Thank you! We will call you back shortly.';
+    e.target.reset();
+  });
+})();
+</script>
+</body>
+</html>
